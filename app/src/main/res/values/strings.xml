@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AreYouBatteryOk</string>
+    <string name="dialog_permission_denied">未能获取到root权限</string>
+    <string name="dialog_unsupport_device">抱歉：暂时不支持您的设备</string>
+</resources>
