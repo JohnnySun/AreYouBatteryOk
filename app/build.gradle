@@ -8,16 +8,16 @@ android {
     compileSdkVersion 26
     defaultConfig {
         applicationId "moe.johnny.areyouok"
-        minSdkVersion 24
+        minSdkVersion 23
         targetSdkVersion 26
-        versionName '1.0.1'
+        versionName '1.0.2'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
                 cppFlags ""
             }
         }
-        versionCode 100
+        versionCode 105
     }
     buildTypes {
         release {

@@ -1,8 +1,6 @@
 package moe.johnny.areyouok
 
 import android.annotation.SuppressLint
-import android.graphics.Color
-import android.icu.math.BigDecimal
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.annotation.DrawableRes
@@ -10,7 +8,7 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import kotlinx.android.synthetic.main.activity_hello_indian_mi_fan.*
 import java.io.*
-
+import java.math.BigDecimal
 
 
 class HelloIndianMiFanAct : AppCompatActivity() {
@@ -24,34 +22,38 @@ class HelloIndianMiFanAct : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_hello_indian_mi_fan)
-        if (checkDeviceSupport()) {
-            loadData()
-            refreshBtn.setOnClickListener { loadData() }
-        } else {
-            unsupportDevice()
-        }
+        loadData()
+        refreshBtn.setOnClickListener { loadData() }
     }
 
     private fun loadData() {
-        val p = Runtime.getRuntime().exec("su")
-        val dos = DataOutputStream(p.outputStream)
-        dos.writeBytes("cat /sys/class/power_supply/bms/uevent\n")
-        dos.writeBytes("exit\n")
-        dos.flush()
         try {
-            p.waitFor()
-            if (p.exitValue() == 0) {
-                val reader = BufferedReader(InputStreamReader(p.inputStream))
-                saveData(reader)
-                loss = getBatteryLoss()
-                selectBackground(loss)
-                setBatteryLossProgress(loss)
-                setTips(loss, getIntData("POWER_SUPPLY_CAPACITY"))
-            } else {
-                permissionDenied()
+            val p = Runtime.getRuntime().exec("su")
+            val dos = DataOutputStream(p.outputStream)
+            dos.writeBytes("cat /sys/class/power_supply/bms/uevent\n")
+            dos.writeBytes("exit\n")
+            dos.flush()
+            try {
+                p.waitFor()
+                if (p.exitValue() == 0) {
+                    val reader = BufferedReader(InputStreamReader(p.inputStream))
+                    saveData(reader)
+                    if (checkDeviceSupport()) {
+                        loss = getBatteryLoss()
+                        selectBackground(loss)
+                        setBatteryLossProgress(loss)
+                        setTips(loss, getIntData("POWER_SUPPLY_CAPACITY"))
+                    } else {
+                        unsupportDevice()
+                    }
+                } else {
+                    permissionDenied()
+                }
+            } catch (e: InterruptedException) {
+                unsupportDevice()
             }
-        } catch (e: InterruptedException) {
-            unsupportDevice()
+        } catch (e: IOException) {
+            permissionDenied()
         }
     }
 
@@ -97,6 +99,24 @@ class HelloIndianMiFanAct : AppCompatActivity() {
         }
         return rawData[key]!!.toInt()
     }
+
+    private fun getStrData(key: String) : String? {
+        if (rawData.isEmpty() || rawData[key] == null) {
+            return null
+        }
+        return rawData[key]
+    }
+
+    private fun checkDeviceSupport() : Boolean {
+        val chargeFullDesign = getStrData("POWER_SUPPLY_CHARGE_FULL_DESIGN")
+        val chargeNowRaw = getStrData("POWER_SUPPLY_CHARGE_NOW_RAW")
+        val capaityRaw = getStrData("POWER_SUPPLY_CAPACITY_RAW")
+        val capaity = getStrData("POWER_SUPPLY_CAPACITY")
+
+        return !(chargeFullDesign.isNullOrEmpty() || chargeNowRaw.isNullOrEmpty() ||
+                capaityRaw.isNullOrEmpty() || capaity.isNullOrEmpty())
+    }
+
 
     //获得真正的百分比
     @SuppressLint("SetTextI18n")
@@ -155,13 +175,13 @@ class HelloIndianMiFanAct : AppCompatActivity() {
         builder.create().show()
     }
 
-    private fun checkDeviceSupport() : Boolean {
+    /*private fun checkDeviceSupport() : Boolean {
         val codeName = getSystemProperty("ro.product.device")
         if (codeName == "gemini" || codeName == "capricorn" || codeName == "lithium") {
             return true
         }
         return false
-    }
+    }*/
 
     fun getSystemProperty(key: String): String? {
         var value: String? = null
