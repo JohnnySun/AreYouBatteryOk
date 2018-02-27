@@ -68,7 +68,7 @@ class HelloIndianMiFanPresenter(private val mView: HelloIndianMiFanAct) {
             if (bmsProvider.isSupportStanderMode()) {
                 val chargeFullDesign = bmsProvider.getIntData("POWER_SUPPLY_CHARGE_FULL_DESIGN")
                 val chargeFull = bmsProvider.getIntData("POWER_SUPPLY_CHARGE_FULL")
-                var bd = BigDecimal((1 - (chargeFull / chargeFullDesign)) * 100)
+                var bd = BigDecimal((1 - (chargeFull / chargeFullDesign.toDouble())) * 100)
                 bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP)
                 return bd.toFloat()
             } else if (bmsProvider.isSupportCapcityMode()) {
